@@ -1,8 +1,11 @@
 let data;
 let months;
 
-let zeroRadius = 75;
+let zeroRadius = 125;
 let oneRadius = 200;
+
+let currentRow = 0;
+let currentMonth = 0;
 
 function preload() {
   data = loadTable("./giss-data-042323.csv", "csv", "header");
@@ -34,7 +37,8 @@ function setup() {
 function draw() {
   background(0);
   translate(width / 2, height / 2);
-
+  textAlign(CENTER, CENTER);
+  textSize(16);
   stroke(255);
   strokeWeight(2);
   noFill();
@@ -71,25 +75,41 @@ function draw() {
     pop();
   }
 
+  let year = data.getRow(currentRow).get("Year");
+  textSize(35);
+  text(year, 0, 0);
+
   beginShape();
   noFill();
   stroke(255);
 
-  for (let j = 0; j < data.getRowCount(); j++) {
+  for (let j = 0; j < currentRow; j++) {
     let row = data.getRow(j);
-    // let year = row.get("Year");
-    // textAlign(CENTER, CENTER);
-    // text(year, 0, 0);
+    let totalMonths = months.length;
+    if (j == currentRow - 1) {
+      totalMonths = currentMonth;
+    }
 
-    for (let i = 0; i < months.length; i++) {
+    for (let i = 0; i < totalMonths; i++) {
       let anomaly = row.get(months[i]);
-      let angle = map(i, 0, months.length, 0, TWO_PI) + PI / 2;
-      let r = map(anomaly, 0, 1, zeroRadius, oneRadius);
-      let x = r * cos(angle);
-      let y = r * sin(angle);
-      vertex(x, y);
+      if (anomaly !== "***") {
+        let angle = map(i, 0, months.length, 0, TWO_PI) - PI / 3;
+        let r = map(anomaly, 0, 1, zeroRadius, oneRadius);
+
+        let x = r * cos(angle);
+        let y = r * sin(angle);
+        vertex(x, y);
+      }
     }
   }
   endShape();
-  noLoop();
+
+  currentMonth = currentMonth + 1;
+  if (currentMonth == months.length) {
+    currentMonth = 0;
+    currentRow = currentRow + 1;
+    if (currentRow == data.getRowCount()) {
+      noLoop();
+    }
+  }
 }
